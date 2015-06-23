@@ -1,0 +1,24 @@
+%!TEX root = /Users/codemonk/uni/fau/Ferienakademie/svn/trunk/doc/talfer.tex
+
+There are two versions of LBM in the trunk: one which is parallelized with Threaded Building Blocks (see \textit{src/CStage\_FluidSimulationLBM\_TBB.hpp}) and one with OpenMP (see \textit{src/CStage\_FluidSimulationLBM.hpp}). The TBB version is a little more performant, but has a higher complexity due to the required class structure.
+
+Both versions have the following structure:
+\begin{itemize}
+    \item This is an D2Q9 implementation (this means two dimensional and with nine directional probabilitydistributions per cell/pixel)
+    \item Output is written to:
+    \begin{itemize}
+        \item \textit{output\_pressure}, of type \textit{CDataArray2D<float,1>} (this is actually the density and would need to be multiplied by the gas constant and temperature) 
+        \item \textit{output\_velocity}, of type \textit{CDataArray2D<float,2>}, there the first component is the velocity in horizontal direction and the second in vertical direction.
+    \end{itemize} 
+    \item Input: \textit{input\_cDataArray2D}, of type \textit{CDataArray2D<unsigned char,1>} with the following flag interpretation:
+    \begin{itemize}
+        \item 0: Fluid Cell
+        \item 1: Obstacle cell
+        \item 2: Inflow cell
+        \item 3: Outflow cell
+        \item 4: Fluid Cell (is used for target zone definition in Game)
+    \end{itemize}
+    \item All boundaries are considered periodic
+    \item The simulation acts on \textit{simulationData\_BufferSrc} and \textit{simulationData\_BufferDst}, and swaps those after each time-step
+    \item Two time-steps are performed per \textit{main\_loop\_callback}
+\end{itemize}

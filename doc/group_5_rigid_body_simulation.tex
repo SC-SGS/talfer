@@ -1,0 +1,41 @@
+
+\subsection{Class setup}
+The rigid body part is made up of three classes. The Vector2 class provides vector operations. CParticle represents one rigid body with different properties like mass, position, velocity and a method to calculate the euler integration. The main loop of CStage\_RigidBodySimulation calls all needed methods. Movement of all particles, checks for collision and adds the force from the fluid field and the player.
+\subsection{Integration}
+\subsubsection{Input}
+The simulation receives several packets via the talfer pipeline:
+\begin{itemize}
+\item Flag field (from VideoInput)
+Used to look for inflows, outflows and obstacles to detect collisions.
+\item Fluid velocity field (from LBM or NS)
+Used to influence the rigid bodies depending on the velocity of the fluid.
+\item Kinect/Keyboard force
+Used to apply an additional force on the rigid bodies.
+\end{itemize}
+\subsubsection{Output}
+We need to send an array of our rigid bodies to the Visualization to provide a visual representation. The array contains a std::vector of all particles with their current positions.
+Therefore we use our pipeline packet class CDataParticleArray.
+\subsubsection{Game integration}
+For the gameplay we need to send information about the lifecycle of rigid bodies to the Game class.
+\begin{itemize}
+\item particle\_created(): A new particle was created.
+\item particle\_bumped(): called on obstacle hits in order to play sound.
+\item particle\_destroyed(): A particle vanished at an outflow. Additional information like mass, number of obstacle hits and the kind of obstacle are sent.
+\end{itemize}
+Different Game scenarios need differnt kinds of rigid bodies. Before a new rigid body is created the function Game::setNextParticle(CParticle* p) is called so that custom modifications can be made. For example setting different sprites (Kaiserschmarrn, penguins or blowfish) and masses.
+\subsection{Euler Timsteps (Integration)}
+\subsection{Collision Detection}
+\subsection{Collision Resolution}
+\subsubsection{Collision with rigid body}
+\subsubsection{Collision with obstacles}
+\subsection{Fluid force on particles}
+name of formulae?
+\subsection{Rotation}
+
+
+\subsection{Useful parameters to tweak}
+\begin{itemize}
+\item area for force of fluid on rigid bodies
+\item addForce of kinect
+\item ...
+\end{itemize}

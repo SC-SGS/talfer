@@ -1,0 +1,28 @@
+# im Hauptverzeichnis des branches
+# ===================================
+
+# update, checkin, falls Aenderungen
+svn up
+svn ci -m "What changed ..."
+
+# neue Aenderungen aus dem trunk
+svn merge ^/trunk
+# Passwort muss u.U. mehrfach (>= 14 Mal) eingegeben werden!
+
+# Testen, ob alles laeuft
+
+# Einchecken im branch
+svn commit -m "trunk in Branch XYZ"
+
+
+# im trunk Verzeichnis
+=====================================
+
+# branch in trunk reintegrieren (ist danach nicht mehr zu verwenden)
+svn merge --reintegrate ^/branches/XYZ
+svn commit -m "reintegrated branch XYZ in trunk"
+
+# Bei Bedarf branch loeschen und neu anlegen
+svn delete ^/branches/XYZ -m "Deleted branch XYZ"
+# Branch neu anlegen
+svn copy ^/trunk ^/banches/XYZ -m "Recreated branch XYZ"

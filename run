@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ $1 = "empty" ]; then
+    ./build/fa_2013_release -p4 -i data/game_empty_bounded_640-480.png -a 1000 -x 10.0 -m 10
+fi
+
+if [ $1 = "spiral1" ]; then
+    ./build/fa_2013_release -p4 -i data/game_spiral1_640-480.png -a 1000 -x 10.0 -m 10
+fi
+
+if [ $1 = "spiral2" ]; then
+    ./build/fa_2013_release -p4 -i data/spiral2_640-480.png -a 1000 -x 10.0 -m 1
+fi
+
+if [ $1 = "labyrinth" ]; then
+    ./build/fa_2013_release -p4 -i data/game_labyrinth2_640-480.png -a 1000 -x 10.0 -m 10
+fi
+
+if [ $1 = "ellipse" ]; then
+    ./build/fa_2013_release -p4 -i data/game_ellipse1_640-480.png -a 1000 -x 10.0 -m 10
+fi
+
+if [ $1 = "canal1" ]; then
+    ./build/fa_2013_release -p4 -i data/canal1_640-480.png -a 1000 -x 10.0 -m 1
+fi
+
+if [ $1 = "canal2" ]; then
+    ./build/fa_2013_release -p4 -i data/canal2_640-480.png -a 1000 -x 10.0 -m 1
+fi

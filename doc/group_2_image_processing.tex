@@ -1,0 +1,57 @@
+
+\subsection{Input}
+The goal of the image processing is to identify the game field out of a webcam input. This is done by applying several filters to the given image and finally creating a flagfield which only contains the flags 0, 1, 2, 3, and 4 representing the flow area, obstacles, input area, output area, and target area (see \ref{sec:imgprocOutput}). The flagfield will then be passed to the other stages of the pipeline. \\
+
+\noindent The algorithms and parameters used for the image processing are implemented in the following three files:
+\begin{itemize}
+	\item CStage\_ImageProcessing.hpp: contains the filters used to identify the game field
+	\item imageops.c: basic image operations that are used by the filters. These operations do not use any objects from the CStageImageProcessing file and are basic C methods. 
+	\item image\_parameters.h: in this file all fixed parameters are declared that are used in the image processing. If the image processing does not work as aspected, first try to fix the parameters (especially the brightness values for the input, output, target area detection) in this file to achieve better results.
+\end{itemize}
+
+\noindent Before applying several filters, the given image is transformed into an internal flat buffer format using the to\_internal\_buffer() method. The given input array representing the current frame is a two-dimensional array and has the format [R,G,B,R,G,B,R,G,B,R,G,B,...]. Within the internal buffer the three color channels are split up which results into the buffer format [R,R,R,R,R,...,G,G,G,G,G,...,B,B,B,B,...] that allows a easier implementation of the used filters. After processing the frame, the internal flat buffer format is retransformed to the input array format. \\
+
+\noindent The problems we faced implementing the image processing are due to noise and the correct detection of the colors - especially in the borders of the input, output, and target area. However, using the following filters, we got very good results:
+
+\subsection{Used Filters}
+In the following we will give a short introduction to the filters we used to create the flagfield:
+\begin{itemize}
+	\item[1.] \textbf{Difference of Gauss Filter (DoG), apply\_filter\_DoG():} This filter will create two images - a fine blurred and a rough blurred image - using an approximation of a Gaussian Blur filter. Then the difference of these blurred images is calculated which gives you a rough approximation of a bandpass filter. The reason for applying this filter is to get rid of all fine details and noise that are not needed to identify the game field. 
+
+	\item[2.] \textbf{Threshold filter with hysteresis, apply\_filter\_hysteresis():}  This filter applies thresholds to the DoG response to detect Objects. To reduce flickering and make the output more stable, hysteresis in time is used: when a pixel was detected as object in the last frame, a lower threshold is applied; else a higher. 
+	
+	\item[3.] \textbf{HSV color space filter, apply\_filter\_flagfield():} The colors of the frame are interpreted as HSV color values now. Using the hue and the saturation helps to identify the different areas of the game field. In the current implementation the brightness values of the colors are also used to distinguish between red, blue, and green from black. Whenever the colors red, blue, or green are identified as black colors, you might need to adapt the brightness values to the current lighting conditions.
+
+	\item[4.] \textbf{flagfield post processing, apply\_flagfield\_postprocess():} The flagfield at this stage still contains a lot of black pixels around the red input, the blue output, and the green target area. The flagfield post process filter iterates a couple of times over the image and replaces the color of every black pixel with a red, blue, or green color value if the number of colored pixels around the black pixel exceed a given threshold. The different threshold for green, red, or blue pixels can be found (like all other hardcoded parameters) in the image\_parameters.h file.
+
+	\item[5.] \textbf{Smoothing edges, apply\_flagfield\_pixelfix():} The Navier Stokes equations cannot handle single pixel lines. This filter makes sure that there are no longer single pixels that are salient or missing in a line.
+
+\end{itemize}
+
+\subsection{Unused filters and FFT}
+\noindent There are still some filters and basic image functions in the CStage\_ImageProcessing and image\_parameters.h file that are currently not used by our implementation because of their runtime. Since they worked well, we decided to keep them in our code to allow further testing and development. 
+\begin{itemize}
+	\item \textbf{Diffusion Filter}: This filter will also blur the image but will also keep sharp edges. This feature distinguishes it from the Gaussian Blur filter. However, our implementation of this filter is very slow so we decided to use a Difference of Gauss filter instead which is way faster and also gives satisfying results.
+	\item \textbf{FFT}: All the DoG operations could be performed in one step in the frequency domain, using arbitrarily complex convolution kernels. To do this, the traditional filter implementation ist first applied to an image with a single white pixel to get the filters impulse response which is equivalent to the used kernels. Then, the kernel is fourier-transformed and stored for usage. Now, for every frame, the image is fourier-transformed, then multiplied pointwise with the transformed kernel and then transformed back. While the implementation is basically working, it turned out to be not really faster than the normal implementation and does not fit well to the filtering model. Therefore, it is currently disabled, but it can be used by enabling the \verb-USE_FFT- flag. The make target \verb-fft- does this and also performs the requiered linking to the used \verb-fftw3- library.
+\end{itemize}
+
+\subsection{Change Detection}
+There are two kinds of change detection in the image processing stage: the first detects whether the camera image has not changed at all. When there are only few changes to the input images, the old output is send again to save computation work in the image processing and in the following simulation stages.\\
+
+\noindent The second detects whether there are many changes in the camera image. This is the case when the user is modifying the image right now, and there are hands in the image. Frames with many changes in between are also discarded.
+
+\subsection{Output}
+\label{sec:imgprocOutput}
+\noindent After applying the filters above a frame is pushed to the pipeline which is used again by other pipeline stages. The values in the flagfield can be interpret in the following way:\newline
+	
+	\begin{tabular}{c|l} 
+		\textbf{flag number} & \textbf{interpretation}\\
+		\hline
+		0 & flow area\\
+		1 & black, obstacles\\
+		2 & red, input area \\
+		3 & blue, output area \\
+		4 & green, target area
+	\end{tabular}
+	
+	
