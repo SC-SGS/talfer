@@ -7,7 +7,9 @@ For physically correct Poiseuille flow:
 
 # compiling
 There are several compiling instructions available by a simple Makefile:
+
 cd path/to/talfer
+
 make <kinect> <debug> <release>
 
 Check the "run" script to know how to start the game.
